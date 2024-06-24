@@ -94,7 +94,6 @@ def sorting_mcq_json_objects(json_list, req_mcq_num, vector_db):
                 for k in i["options"]:
                     mcq_options = mcq_options + str(i["options"].index(k) + 1) + "." + k + "\n"
                 mcq_constructed = i["question"] + "\n" + mcq_options + "\n" + i["answer"]
-                st.write(f"similarity_search_for_mcq:\n{mcq_constructed}\n")
                 mcq_sim_search_list = vector_db.similarity_search_with_score(mcq_constructed)
                 sum_similarity_score_mcq = 0.0
                 doc_count = 0
@@ -102,8 +101,6 @@ def sorting_mcq_json_objects(json_list, req_mcq_num, vector_db):
                     sum_similarity_score_mcq += score
                     doc_count += 1
                 average_sim_score_mcq = sum_similarity_score_mcq / doc_count
-                st.write("Average Similarity score for this mcq : ", average_sim_score_mcq)
-                st.write(mcq_sim_search_list)
                 if average_sim_score_mcq <= 1.09:
                     sorted_objects.append(i)
                 else:
@@ -259,7 +256,7 @@ def main():
             doc_count += 1
 
         average_similarity_score = sum_similarity_score / doc_count
-        st.write(f"Average similarity score: {average_similarity_score}")
+        # st.write(f"Average similarity score: {average_similarity_score}")
 
         N = 3
         top_n_docs = []
@@ -337,6 +334,7 @@ def main():
                         st.session_state.pdf_buffer_essay_answers = create_pdf(essay_answer_text, "Essay Questions Answers")
 
             if 'pdf_buffer_mcq' in st.session_state:
+                st.write("Here are your generated files. Please click to download.")
                 st.download_button(label="Download MCQ PDF", data=st.session_state.pdf_buffer_mcq, file_name="generated_mcq.pdf", mime="application/pdf")
 
             if 'pdf_buffer_mcq_answers' in st.session_state:
@@ -354,7 +352,8 @@ def main():
                 \n• Note that you can only upload G.C.E. O/L Science education subject related Notes documents only.
                 \n• Only Pdf format files are allowed.
                 \n• Maximum word count for a document is 3000.
-                \n• Only One Document is allowed to upload at a time. """, icon="ℹ️")
+                \n• Only One Document is allowed to upload at a time. 
+                \n• This application can create only maximum 20 MCQs and 3 Essay type questions only.""", icon="ℹ️")
 
 if __name__ == "__main__":
     main()
