@@ -1,0 +1,6 @@
+langchain
+streamlit
+tempfile
+huggingface_hub
+reportlab
+dotenv
