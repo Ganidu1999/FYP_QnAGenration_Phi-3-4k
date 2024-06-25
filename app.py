@@ -8,10 +8,12 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.vectorstores import Chroma
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
+from transformers import AutoTokenizer
 from huggingface_hub import login
 import requests
 import time
 import json
+import math
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -240,6 +242,13 @@ def main():
         if not textInPDF:
             return
 
+        tokenizer=AutoTokenizer.from_pretrained("Ganidu/Phi_3_mini_4k_OLScience_v02", trust_remote_code=True)
+        tokens=tokenizer.tokenize(textInPDF)
+        token_count=len(tokens)
+
+        if token_count >=3500:
+            st.warning(f"""WORD COUNT of this document : {token_count}. Please upload a file with word count less than 3500 !!""", icon="🚨")
+            return
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=20000, chunk_overlap=50)
         chunked_text_in_PDF = text_splitter.split_text(textInPDF)
 
@@ -256,7 +265,7 @@ def main():
             doc_count += 1
 
         average_similarity_score = sum_similarity_score / doc_count
-        # st.write(f"Average similarity score: {average_similarity_score}")
+        st.write(f"Average similarity score: {math.ceil(average_similarity_score * 10000) / 10000}")
 
         N = 3
         top_n_docs = []
@@ -351,7 +360,7 @@ def main():
         st.info("""Instructions:
                 \n• Note that you can only upload G.C.E. O/L Science education subject related Notes documents only.
                 \n• Only Pdf format files are allowed.
-                \n• Maximum word count for a document is 3000.
+                \n• Maximum word count for a document is 3500.
                 \n• Only One Document is allowed to upload at a time. 
                 \n• This application can create only maximum 20 MCQs and 3 Essay type questions only.""", icon="ℹ️")
 
