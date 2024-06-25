@@ -228,6 +228,7 @@ def estimate_qa_pairs(text):
         return 20
     else:
         return max_count 
+
 def main():
     login(token=os.environ.get("hf_bearer_token"))
     st.title("Create Practice Questionnaires for G.C.E. O/L Science Education")
@@ -236,6 +237,9 @@ def main():
 
     embeddings = HuggingFaceEmbeddings(model_name='Ganidu/bge-small-en-ol-science', model_kwargs={'device': 'cpu'})
     vectorDB = Chroma(persist_directory="vectorDB-Chroma-data-text-only", embedding_function=embeddings)
+
+    if 'file_change' not in st.session_state:
+        st.session_state.file_change = False
 
     if uploaded_file:
         textInPDF = check_pdfs(uploaded_file)
@@ -249,6 +253,7 @@ def main():
         if token_count >=3500:
             st.warning(f"""WORD COUNT of this document : {token_count}. Please upload a file with word count less than 3500 !!""", icon="🚨")
             return
+
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=20000, chunk_overlap=50)
         chunked_text_in_PDF = text_splitter.split_text(textInPDF)
 
@@ -283,13 +288,14 @@ def main():
             st.sidebar.write(f"Total possible MCQ pairs: {total_possible_mcq_pairs}")
             st.sidebar.write(f"Total possible essay-type pairs: {total_possible_essay_pairs}")
 
-            num_mcq = st.sidebar.number_input("Number of Multiple Choice Questions", min_value=0, max_value=total_possible_mcq_pairs)
-            num_essay = st.sidebar.number_input("Number of Essay Type Questions", min_value=0, max_value=total_possible_essay_pairs)
+            num_mcq = st.sidebar.number_input("Number of Multiple Choice Questions", min_value=0, max_value=total_possible_mcq_pairs, on_change=lambda: setattr(st.session_state, 'file_change', True))
+            num_essay = st.sidebar.number_input("Number of Essay Type Questions", min_value=0, max_value=total_possible_essay_pairs, on_change=lambda: setattr(st.session_state, 'file_change', True))
             generate_button = st.sidebar.button("Create QnA Pairs")
 
             st.sidebar.write(f"Total selected Q&A pairs: {num_mcq + num_essay}")
 
             if generate_button:
+                st.session_state.file_change = False
                 if num_mcq > total_possible_mcq_pairs or num_essay > total_possible_essay_pairs:
                     st.sidebar.error("Selected number of Q&A pairs exceeds the total possible Q&A pairs.")
                 elif num_mcq == 0 and num_essay == 0:
@@ -344,16 +350,16 @@ def main():
 
             if 'pdf_buffer_mcq' in st.session_state:
                 st.write("Here are your generated files. Please click to download.")
-                st.download_button(label="Download MCQ PDF", data=st.session_state.pdf_buffer_mcq, file_name="generated_mcq.pdf", mime="application/pdf")
+                st.download_button(label="Download MCQ PDF", data=st.session_state.pdf_buffer_mcq, file_name="generated_mcq.pdf", mime="application/pdf", disabled=st.session_state.file_change)
 
             if 'pdf_buffer_mcq_answers' in st.session_state:
-                st.download_button(label="Download MCQ - Answers - PDF", data=st.session_state.pdf_buffer_mcq_answers, file_name="generated_mcq_answers.pdf", mime="application/pdf")
+                st.download_button(label="Download MCQ - Answers - PDF", data=st.session_state.pdf_buffer_mcq_answers, file_name="generated_mcq_answers.pdf", mime="application/pdf", disabled=st.session_state.file_change)
 
             if 'pdf_buffer_essay' in st.session_state:
-                st.download_button(label="Download Essay Questions PDF", data=st.session_state.pdf_buffer_essay, file_name="generated_eq.pdf", mime="application/pdf")
+                st.download_button(label="Download Essay Questions PDF", data=st.session_state.pdf_buffer_essay, file_name="generated_eq.pdf", mime="application/pdf", disabled=st.session_state.file_change)
 
             if 'pdf_buffer_essay_answers' in st.session_state:
-                st.download_button(label="Download Essay Questions-Answers - PDF", data=st.session_state.pdf_buffer_essay_answers, file_name="generated_eq_answers.pdf", mime="application/pdf")
+                st.download_button(label="Download Essay Questions-Answers - PDF", data=st.session_state.pdf_buffer_essay_answers, file_name="generated_eq_answers.pdf", mime="application/pdf", disabled=st.session_state.file_change)
 
     else:
         st.write("\n\n")
