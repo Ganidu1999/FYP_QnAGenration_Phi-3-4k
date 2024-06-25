@@ -23,6 +23,14 @@ from reportlab.pdfbase import pdfmetrics
 from io import BytesIO
 from dotenv import load_dotenv
 
+st.markdown("""
+<style>
+.st-emotion-cache-zq5wmm.ezrtsby0
+{
+       visibility: hidden;     
+}    
+</style>
+""",unsafe_allow_html=True)
 
 load_dotenv()
 
