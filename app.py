@@ -179,7 +179,8 @@ def create_pdf(text, title):
 
     pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='Bold', fontSize=14, leading=16, spaceAfter=14, spaceBefore=14, alignment=1, textColor='#000000', fontName="DejaVuSans"))
+    styles.add(ParagraphStyle(name='Bold', fontSize=14, leading=16, spaceAfter=14, spaceBefore=14, alignment=1, textColor='#000000', fontName="ArialUnicode"))
+    styles.add(ParagraphStyle(name='UnicodeStyle', fontName='DejaVuSans', fontSize=12))
 
     title = Paragraph(title, styles['Bold'])
 
@@ -190,10 +191,10 @@ def create_pdf(text, title):
     for line in text_lines:
         if ")" in line:
             story.append(Spacer(1, 20)) 
-            story.append(Paragraph(line+"\n", styles['Normal']))
+            story.append(Paragraph(line+"\n", styles['UnicodeStyle']))
             story.append(Spacer(1, 5))
         else:
-            story.append(Paragraph(line, styles['Normal']))
+            story.append(Paragraph(line+"\n", styles['UnicodeStyle']))
 
     story.append(Spacer(1, 60))  
     doc.build(story)
@@ -290,7 +291,7 @@ def main():
 
             num_mcq = st.sidebar.number_input("Number of Multiple Choice Questions", min_value=0, max_value=total_possible_mcq_pairs, on_change=lambda: setattr(st.session_state, 'file_change', True))
             num_essay = st.sidebar.number_input("Number of Essay Type Questions", min_value=0, max_value=total_possible_essay_pairs, on_change=lambda: setattr(st.session_state, 'file_change', True))
-            generate_button = st.sidebar.button("Create QnA Pairs")
+            generate_button = st.sidebar.button("Create QnA Pairs",on_click=lambda: setattr(st.session_state, 'file_change', True))
 
             st.sidebar.write(f"Total selected Q&A pairs: {num_mcq + num_essay}")
 
