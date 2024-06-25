@@ -179,7 +179,7 @@ def create_pdf(text, title):
 
     pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name='Bold', fontSize=14, leading=16, spaceAfter=14, spaceBefore=14, alignment=1, textColor='#000000', fontName="ArialUnicode"))
+    styles.add(ParagraphStyle(name='Bold', fontSize=14, leading=16, spaceAfter=14, spaceBefore=14, alignment=1, textColor='#000000', fontName="DejaVuSans"))
     styles.add(ParagraphStyle(name='UnicodeStyle', fontName='DejaVuSans', fontSize=12))
 
     title = Paragraph(title, styles['Bold'])
