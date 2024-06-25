@@ -4,3 +4,5 @@ tempfile
 huggingface_hub
 reportlab
 dotenv
+pdfplumber
+transformers
