@@ -224,8 +224,8 @@ def check_pdfs(file):
 
 def estimate_qa_pairs(text):
     max_count = len(text) // 80
-    if max_count >= 20:
-        return 20
+    if max_count >= 15:
+        return 15
     else:
         return max_count 
 
@@ -283,7 +283,7 @@ def main():
             st.warning("Please upload content only related to G.C.E. O/L Science Education !!", icon="🚨")
         else:
             total_possible_mcq_pairs = int(sum(estimate_qa_pairs(doc.page_content) for doc, _ in top_n_docs) / N)
-            total_possible_essay_pairs = total_possible_mcq_pairs // 6
+            total_possible_essay_pairs = total_possible_mcq_pairs // 5
 
             st.sidebar.write(f"Total possible MCQ pairs: {total_possible_mcq_pairs}")
             st.sidebar.write(f"Total possible essay-type pairs: {total_possible_essay_pairs}")
@@ -368,7 +368,9 @@ def main():
                 \n• Only Pdf format files are allowed.
                 \n• Maximum word count for a document is 3500.
                 \n• Only One Document is allowed to upload at a time. 
-                \n• This application can create only maximum 20 MCQs and 3 Essay type questions only.""", icon="ℹ️")
+                \n• This application can create only maximum 15 MCQs and 3 Essay type questions only.
+                \n• For a better experience keep the maximum page count of the document upto 12 pages
+                \n• Questions and answers are generated from a Fine-tuned Large Language model therefore sometimes outputs might not be 100% accurate""", icon="ℹ️")
 
 if __name__ == "__main__":
     main()
