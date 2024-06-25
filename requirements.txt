@@ -6,3 +6,6 @@ reportlab
 dotenv
 pdfplumber
 transformers
+sentence-transformers
+langchain-community
+chromadb
