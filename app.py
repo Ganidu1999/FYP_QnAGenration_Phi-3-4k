@@ -26,7 +26,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_URL = "https://xlh2tqqesoyxf3b5.us-east4.gcp.endpoints.huggingface.cloud"
+#API_URL = "https://xlh2tqqesoyxf3b5.us-east4.gcp.endpoints.huggingface.cloud"
+API_URL = "https://wepj6tr45pyosept.us-east-1.aws.endpoints.huggingface.cloud"
+           
 headers = {
     "Accept": "application/json",
     "Authorization": "Bearer " + str(os.environ.get("hf_bearer_token")),
