@@ -26,7 +26,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-API_URL = "https://xlh2tqqesoyxf3b5.us-east4.gcp.endpoints.huggingface.cloud"
+API_URL = "https://nk2fvhsg5k3zhc8e.us-east-1.aws.endpoints.huggingface.cloud"
 
            
 headers = {
@@ -42,11 +42,11 @@ mcq_params = {
     "max_new_tokens": 1024,
     "clean_up_tokenization_spaces": True,
     "return_full_text": False,
-    "return_text": True,
+    # "return_text": True,
     "prefix": "##########",
-    "response_format": {
-        "type": "json_object",
-    }
+    # "response_format": {
+    #     "type": "json_object",
+    # }
 }
 
 essay_params = {
@@ -56,11 +56,11 @@ essay_params = {
     "max_new_tokens": 1024,
     "clean_up_tokenization_spaces": True,
     "return_full_text": False,
-    "return_text": True,
+    #"return_text": True,
     "prefix": "##########",
-    "response_format": {
-        "type": "json_object",
-    }
+    # "response_format": {
+    #     "type": "json_object",
+    # }
 }
 
 def query(payload):
@@ -135,7 +135,7 @@ def sorting_essay_json_objects(json_list, req_essay_num):
 def generate_mcq_pairs(doc_content, num_pairs):
     mcq_prompt_template = f"""You are an expert in creating practice multiple-choice questions and answers based on study material.Your goal is to prepare a student for their exam. You do this by asking questions and providing detailed answers about the text below:
      {doc_content}
-Create {num_pairs} multiple-choice questions with four options and provide the correct answer. Question and answer should be in the json format under question,options,answer fields .Strickly follow the exact json format for all Questions and answers . When Question and answer generating, do not mention as activity 8.1 or something like that. instead explain the activity as a part of the question. You are a free entity from the text provided above.
+Create {num_pairs} multiple-choice questions with four options and provide the correct answer. Question and answer should be in the json format under question,options which is a list,answer fields .Strickly follow the exact json format for all Questions and answers . When Question and answer generating, do not mention as activity 8.1 or something like that. instead explain the activity as a part of the question. You are a free entity from the text provided above.
 QUESTIONS AND ANSWERS:
 """
     if len(mcq_prompt_template) > 6144:  
@@ -307,21 +307,33 @@ def main():
                     with st.spinner('Generating response...'):
                         generated_mcq_pairs = []
                         generated_essay_pairs = []
+                        sorted_mcq_objs =[]
+                        sorted_essay_objs = []
 
-                        for doc, _ in top_n_docs:
-                            if num_essay == 0:
-                                generated_mcq_pairs.append(generate_mcq_pairs(doc.page_content, num_mcq))
-                            elif num_mcq == 0:
-                                generated_essay_pairs.append(generate_essay_pairs(doc.page_content, num_essay))
-                            else:
-                                generated_mcq_pairs.append(generate_mcq_pairs(doc.page_content, num_mcq))
-                                generated_essay_pairs.append(generate_essay_pairs(doc.page_content, num_essay))
+                        while len(sorted_mcq_objs) < num_mcq and len(sorted_essay_objs) < num_essay :
+                            for doc, _ in top_n_docs:
+                                if num_essay == 0:
+                                    generated_mcq_pairs.append(generate_mcq_pairs(doc.page_content, num_mcq))
+                                elif num_mcq == 0:
+                                    generated_essay_pairs.append(generate_essay_pairs(doc.page_content, num_essay))
+                                else:
+                                    generated_mcq_pairs.append(generate_mcq_pairs(doc.page_content, num_mcq))
+                                    generated_essay_pairs.append(generate_essay_pairs(doc.page_content, num_essay))
 
-                        mcq_json_objects = string_to_json(generated_mcq_pairs)
-                        sorted_mcq_objs = sorting_mcq_json_objects(mcq_json_objects, num_mcq, vectorDB)
 
-                        essay_json_objects = string_to_json(generated_essay_pairs)
-                        sorted_essay_objs = sorting_essay_json_objects(essay_json_objects, num_essay)
+
+                            mcq_json_objects = string_to_json(generated_mcq_pairs)
+                            sorted_mcq_objs = sorting_mcq_json_objects(mcq_json_objects, num_mcq, vectorDB)
+
+                            essay_json_objects = string_to_json(generated_essay_pairs)
+                            sorted_essay_objs = sorting_essay_json_objects(essay_json_objects, num_essay)
+                            st.write("generated_mcq_objects")
+                            st.write(generated_mcq_pairs)
+                            st.write("mcq_Json_objects")
+                            st.write(mcq_json_objects)
+                            st.write("sorted_mcq_objects")
+                            st.write(sorted_mcq_objs)
+
 
                         mcq_text = "Multiple Choice Questions\n\n\n"
                         mcq_answer_text = "Multiple Choice Questions Answers\n\n\n"
@@ -331,7 +343,7 @@ def main():
                             answer_index = 0
                             for option in mcq["options"]:
                                 options += "0" + str(mcq["options"].index(option) + 1) + "." + option + "\n"
-                                if re.search(mcq["answer"], option, re.IGNORECASE):
+                                if re.search(mcq["answer"], option, re.IGNORECASE): 
                                     answer_index = mcq["options"].index(option)
                                     mcq_answer_text += "(" + str(sorted_mcq_objs.index(mcq) + 1) + ") " + str(answer_index + 1) + ". " + mcq["answer"] + "\n\n"
 
