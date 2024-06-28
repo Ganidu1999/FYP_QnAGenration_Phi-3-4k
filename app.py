@@ -43,7 +43,7 @@ mcq_params = {
     "clean_up_tokenization_spaces": True,
     "return_full_text": False,
     # "return_text": True,
-    "prefix": "##########",
+    #"prefix": "##########",
     # "response_format": {
     #     "type": "json_object",
     # }
@@ -57,7 +57,7 @@ essay_params = {
     "clean_up_tokenization_spaces": True,
     "return_full_text": False,
     #"return_text": True,
-    "prefix": "##########",
+    #"prefix": "##########",
     # "response_format": {
     #     "type": "json_object",
     # }
@@ -249,12 +249,12 @@ def main():
         if not textInPDF:
             return
 
-        tokenizer=AutoTokenizer.from_pretrained("Ganidu/Phi_3_mini_4k_OLScience_v02", trust_remote_code=True)
+        tokenizer=AutoTokenizer.from_pretrained("Ganidu/Phi-3-Finetuned-LORA", trust_remote_code=True)
         tokens=tokenizer.tokenize(textInPDF)
         token_count=len(tokens)
 
-        if token_count >=3500:
-            st.warning(f"""WORD COUNT of this document : {token_count}. Please upload a file with word count less than 3500 !!""", icon="🚨")
+        if token_count >=3850:
+            st.warning(f"""WORD COUNT of this document : {token_count}. Please upload a file with word count less than 3850 !!""", icon="🚨")
             return
 
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=20000, chunk_overlap=50)
@@ -273,7 +273,7 @@ def main():
             doc_count += 1
 
         average_similarity_score = sum_similarity_score / doc_count
-        st.write(f"Average similarity score: {math.ceil(average_similarity_score * 10000) / 10000}")
+        st.success('Document Verified!', icon="✅")
 
         N = 3
         top_n_docs = []
@@ -304,6 +304,7 @@ def main():
                 elif num_mcq == 0 and num_essay == 0:
                     st.sidebar.error("You haven't selected any number of MCQ or Essay type Questions to generate!!")
                 else:
+                    st.session_state.file_change = True
                     with st.spinner('Generating response...'):
                         generated_mcq_pairs = []
                         generated_essay_pairs = []
@@ -327,12 +328,12 @@ def main():
 
                             essay_json_objects = string_to_json(generated_essay_pairs)
                             sorted_essay_objs = sorting_essay_json_objects(essay_json_objects, num_essay)
-                            st.write("generated_mcq_objects")
-                            st.write(generated_mcq_pairs)
-                            st.write("mcq_Json_objects")
-                            st.write(mcq_json_objects)
-                            st.write("sorted_mcq_objects")
-                            st.write(sorted_mcq_objs)
+                            # st.write("generated_mcq_objects")
+                            # st.write(generated_mcq_pairs)
+                            # st.write("mcq_Json_objects")
+                            # st.write(mcq_json_objects)
+                            # st.write("sorted_mcq_objects")
+                            # st.write(sorted_mcq_objs)
 
 
                         mcq_text = "Multiple Choice Questions\n\n\n"
@@ -343,7 +344,7 @@ def main():
                             answer_index = 0
                             for option in mcq["options"]:
                                 options += "0" + str(mcq["options"].index(option) + 1) + "." + option + "\n"
-                                if re.search(mcq["answer"], option, re.IGNORECASE): 
+                                if re.search(re.escape(mcq["answer"]), option, re.IGNORECASE): 
                                     answer_index = mcq["options"].index(option)
                                     mcq_answer_text += "(" + str(sorted_mcq_objs.index(mcq) + 1) + ") " + str(answer_index + 1) + ". " + mcq["answer"] + "\n\n"
 
@@ -363,6 +364,7 @@ def main():
                         st.session_state.pdf_buffer_essay = create_pdf(essay_text, "Essay Type Questions")
                         st.session_state.pdf_buffer_essay_answers = create_pdf(essay_answer_text, "Essay Questions Answers")
 
+                st.session_state.file_change = False
             if 'pdf_buffer_mcq' in st.session_state:
                 st.write("Here are your generated files. Please click to download.")
                 st.download_button(label="Download MCQ PDF", data=st.session_state.pdf_buffer_mcq, file_name="generated_mcq.pdf", mime="application/pdf", disabled=st.session_state.file_change)
@@ -381,7 +383,7 @@ def main():
         st.info("""Instructions:
                 \n• Note that you can only upload G.C.E. O/L Science education subject related Notes documents only.
                 \n• Only Pdf format files are allowed.
-                \n• Maximum word count for a document is 3500.
+                \n• Maximum word count for a document is 3850.
                 \n• Only One Document is allowed to upload at a time. 
                 \n• This application can create only maximum 15 MCQs and 3 Essay type questions only.
                 \n• For a better experience keep the maximum page count of the document upto 12 pages
