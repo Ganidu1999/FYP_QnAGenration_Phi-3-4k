@@ -147,6 +147,7 @@ QUESTIONS AND ANSWERS:
         "parameters": mcq_params
     })
     if isinstance(output, list) and len(output) > 0 and 'generated_text' in output[0]:
+        print("\n\n\n####################   \n\nexecuting generate_mcq_pairs func......\n\n#####################")
         return output[0]['generated_text']
     else:
         st.error(f"Unexpected response format: {output}")
@@ -167,6 +168,7 @@ QUESTIONS AND ANSWERS:
         "parameters": essay_params
     })
     if isinstance(output, list) and len(output) > 0 and 'generated_text' in output[0]:
+        print("\n\n\n####################   \n\nexecuting generate_essay_pairs func......\n\n#####################")
         return output[0]['generated_text']
     else:
         st.error(f"Unexpected response format: {output}")
@@ -306,27 +308,34 @@ def main():
                 else:
                     st.session_state.file_change = True
                     with st.spinner('Generating response...'):
+                        print("\n\n\n####################   \n\nexecuting Generating response spinner...\n\n#####################")
                         generated_mcq_pairs = []
                         generated_essay_pairs = []
                         sorted_mcq_objs =[]
                         sorted_essay_objs = []
-
-                        while len(sorted_mcq_objs) < num_mcq and len(sorted_essay_objs) < num_essay :
+                        while len(sorted_mcq_objs) <= num_mcq and len(sorted_essay_objs) <= num_essay :
+                            if len(sorted_mcq_objs) == num_mcq and len(sorted_essay_objs) == num_essay:
+                                break
                             for doc, _ in top_n_docs:
                                 if num_essay == 0:
+                                    print("\n\n\n####################   \n\nexecuting num_essay = 0 ....\n\n#####################")
                                     generated_mcq_pairs.append(generate_mcq_pairs(doc.page_content, num_mcq))
                                 elif num_mcq == 0:
+                                    print("\n\n\n####################   \n\nexecuting num_mcq = 0 ....\n\n#####################")
                                     generated_essay_pairs.append(generate_essay_pairs(doc.page_content, num_essay))
                                 else:
+                                    print("\n\n\n####################   \n\n generating both mcq and essay ....\n\n#####################")
                                     generated_mcq_pairs.append(generate_mcq_pairs(doc.page_content, num_mcq))
                                     generated_essay_pairs.append(generate_essay_pairs(doc.page_content, num_essay))
 
-
-
+                            print("\n\n\n####################   \n\n string to json -mcq  ....\n\n#####################")
                             mcq_json_objects = string_to_json(generated_mcq_pairs)
+                            print("\n\n\n####################   \n\n json sorting -mcq  ....\n\n#####################")
                             sorted_mcq_objs = sorting_mcq_json_objects(mcq_json_objects, num_mcq, vectorDB)
 
+                            print("\n\n\n####################   \n\n string to json - essay  ....\n\n#####################")
                             essay_json_objects = string_to_json(generated_essay_pairs)
+                            print("\n\n\n####################   \n\n json sorting - essay  ....\n\n#####################")
                             sorted_essay_objs = sorting_essay_json_objects(essay_json_objects, num_essay)
                             # st.write("generated_mcq_objects")
                             # st.write(generated_mcq_pairs)
@@ -335,34 +344,35 @@ def main():
                             # st.write("sorted_mcq_objects")
                             # st.write(sorted_mcq_objs)
 
+                        if len(sorted_mcq_objs) !=0:
+                            mcq_text = "Multiple Choice Questions\n\n\n"
+                            mcq_answer_text = "Multiple Choice Questions Answers\n\n\n"
+                            for mcq in sorted_mcq_objs:
+                                question = mcq["question"]
+                                options = ''
+                                answer_index = 0
+                                for option in mcq["options"]:
+                                    options += "0" + str(mcq["options"].index(option) + 1) + "." + option + "\n"
+                                    if re.search(re.escape(mcq["answer"]), option, re.IGNORECASE): 
+                                        answer_index = mcq["options"].index(option)
+                                        mcq_answer_text += "(" + str(sorted_mcq_objs.index(mcq) + 1) + ") " + str(answer_index + 1) + ". " + mcq["answer"] + "\n\n"
 
-                        mcq_text = "Multiple Choice Questions\n\n\n"
-                        mcq_answer_text = "Multiple Choice Questions Answers\n\n\n"
-                        for mcq in sorted_mcq_objs:
-                            question = mcq["question"]
-                            options = ''
-                            answer_index = 0
-                            for option in mcq["options"]:
-                                options += "0" + str(mcq["options"].index(option) + 1) + "." + option + "\n"
-                                if re.search(re.escape(mcq["answer"]), option, re.IGNORECASE): 
-                                    answer_index = mcq["options"].index(option)
-                                    mcq_answer_text += "(" + str(sorted_mcq_objs.index(mcq) + 1) + ") " + str(answer_index + 1) + ". " + mcq["answer"] + "\n\n"
+                                mcq_text += "(" + str(sorted_mcq_objs.index(mcq) + 1) + ") " + question + "\n" + options + "\n\n"
 
-                            mcq_text += "(" + str(sorted_mcq_objs.index(mcq) + 1) + ") " + question + "\n" + options + "\n\n"
+                            st.session_state.pdf_buffer_mcq = create_pdf(mcq_text, "Multiple Choice Questions")
+                            st.session_state.pdf_buffer_mcq_answers = create_pdf(mcq_answer_text, "Multiple Choice Questions Answers")
 
-                        st.session_state.pdf_buffer_mcq = create_pdf(mcq_text, "Multiple Choice Questions")
-                        st.session_state.pdf_buffer_mcq_answers = create_pdf(mcq_answer_text, "Multiple Choice Questions Answers")
+                        if len(sorted_essay_objs) !=0:
+                            essay_text = "Essay Type Questions\n\n\n"
+                            essay_answer_text = "Essay Type Questions Answers\n\n\n"
+                            for essay in sorted_essay_objs:
+                                question = essay["question"]
+                                detailed_answer = essay["detailed_answer"]
+                                essay_text += "(" + str(sorted_essay_objs.index(essay) + 1) + ") " + question + "\n\n"
+                                essay_answer_text += "(" + str(sorted_essay_objs.index(essay) + 1) + ") " + detailed_answer + "\n\n"
 
-                        essay_text = "Essay Type Questions\n\n\n"
-                        essay_answer_text = "Essay Type Questions Answers\n\n\n"
-                        for essay in sorted_essay_objs:
-                            question = essay["question"]
-                            detailed_answer = essay["detailed_answer"]
-                            essay_text += "(" + str(sorted_essay_objs.index(essay) + 1) + ") " + question + "\n\n"
-                            essay_answer_text += "(" + str(sorted_essay_objs.index(essay) + 1) + ") " + detailed_answer + "\n\n"
-
-                        st.session_state.pdf_buffer_essay = create_pdf(essay_text, "Essay Type Questions")
-                        st.session_state.pdf_buffer_essay_answers = create_pdf(essay_answer_text, "Essay Questions Answers")
+                            st.session_state.pdf_buffer_essay = create_pdf(essay_text, "Essay Type Questions")
+                            st.session_state.pdf_buffer_essay_answers = create_pdf(essay_answer_text, "Essay Questions Answers")
 
                 st.session_state.file_change = False
             if 'pdf_buffer_mcq' in st.session_state:
