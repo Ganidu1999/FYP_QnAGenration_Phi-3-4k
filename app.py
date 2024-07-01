@@ -275,7 +275,7 @@ def main():
             doc_count += 1
 
         average_similarity_score = sum_similarity_score / doc_count
-        st.success('Document Verified!', icon="✅")
+        
 
         N = 3
         top_n_docs = []
@@ -287,6 +287,7 @@ def main():
         if average_similarity_score >= 1.09:
             st.warning("Please upload content only related to G.C.E. O/L Science Education !!", icon="🚨")
         else:
+            st.success('Document Verified!', icon="✅")
             total_possible_mcq_pairs = int(sum(estimate_qa_pairs(doc.page_content) for doc, _ in top_n_docs) / N)
             total_possible_essay_pairs = total_possible_mcq_pairs // 5
 
